@@ -1,2 +1,6 @@
 .htaccess
 wp-config.php
+
+
+wp-content/Dropbox_Backup/
+wp-content/plugins/dropbox-backup/tmp/
