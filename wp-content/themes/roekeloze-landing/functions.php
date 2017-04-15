@@ -28,7 +28,7 @@ function xxxx_render_image_attachment_box($post) {
     $existing_image_id = get_post_meta($post->ID,'_xxxx_attached_image', true);
     if(is_numeric($existing_image_id)) {
 
-        echo '<div>';
+        echo '<div class="post-uploaded_image">';
             $arr_existing_image = wp_get_attachment_image_src($existing_image_id, 'large');
             $existing_image_url = $arr_existing_image[0];
             echo '<img src="' . $existing_image_url . '" />';
@@ -61,8 +61,6 @@ function xxxx_render_image_attachment_box($post) {
     echo '<input type="hidden" name="xxxx_manual_save_flag" value="true" />';
 
 }
-
-
 
 function xxxx_setup_meta_boxes() {
 
@@ -169,15 +167,15 @@ function xxxx_update_post($post_id, $post) {
                 // Update the post meta with any feedback
                 update_post_meta($post_id,'_xxxx_attached_image_upload_feedback',$upload_feedback);
 
-            break;
+                break;
 
-            default:
+                default:
 
-        } // End switch
+            } // End switch
 
-    return;
+        return;
 
-} // End if manual save flag
+        } // End if manual save flag
 
     return;
 
@@ -194,3 +192,19 @@ function filter_post_json( $data, $post, $context ) {
 	return $data;
 }
 add_filter( 'rest_prepare_post', 'filter_post_json', 10, 3 );
+
+
+function my_custom_css() {
+  echo '<style>
+    .post-uploaded_image {
+        width: 100%;
+        height: auto;
+    }
+    .post-uploaded_image img {
+        max-width:700px;
+        height:auto;
+    }
+  </style>';
+}
+
+add_action('admin_head', 'my_custom_css');
