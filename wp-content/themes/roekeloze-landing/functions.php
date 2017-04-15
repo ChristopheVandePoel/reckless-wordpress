@@ -201,6 +201,7 @@ function my_custom_css() {
         height: auto;
     }
     .post-uploaded_image img {
+        width: 100%;
         max-width:700px;
         height:auto;
     }
