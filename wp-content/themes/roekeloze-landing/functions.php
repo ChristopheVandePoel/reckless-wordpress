@@ -3,12 +3,12 @@ function add_cors_http_header(){
 
     // ENABLE CORS FOR GIVEN ADDRESSES
 
-$http_origin = $_SERVER['HTTP_ORIGIN'];
+    $http_origin = $_SERVER['HTTP_ORIGIN'];
 
-if ($http_origin == "http://localhost:4200" || $http_origin == "http://roekeloos.be")
-    {  
-        header("Access-Control-Allow-Origin: $http_origin");
-    }
+    if ($http_origin == "http://localhost:4200" || $http_origin == "http://roekeloos.be")
+        {  
+            header("Access-Control-Allow-Origin: $http_origin");
+        }
 }
 add_action('init','add_cors_http_header');
 
@@ -62,9 +62,17 @@ function xxxx_render_image_attachment_box($post) {
 
 }
 
+function xxxx_render_description_field($post) {
+    $existing_post = get_post_meta($post->ID, 'xxxx_description', true);
+    echo '<textarea name="xxxx_description" id="xxxx_description" class="xxxx_description">';
+    echo $existing_post;
+    echo '</textarea>';
+}
+
 function xxxx_setup_meta_boxes() {
 
     // Add the box to a particular custom content type page
+    add_meta_box('xxxx_description_box', 'Set description', 'xxxx_render_description_field', 'post', 'normal', 'high');
     add_meta_box('xxxx_image_box', 'Upload Image', 'xxxx_render_image_attachment_box', 'post', 'normal', 'high');
 
 }
@@ -77,7 +85,19 @@ function xxxx_update_post($post_id, $post) {
     // post type in the passed object isn't "revision"
     $post_type = $post->post_type;
 
+    // add the description, or update it if already there
+    if($post_id && isset($_POST['xxxx_description'])) { 
+        $post_description = get_post_meta($post->ID, 'xxxx_description', true);
+        if ($post_description){
+            update_post_meta($post->ID, 'xxxx_description', $_POST['xxxx_description']);
+        } else {
+            add_post_meta($post->ID, 'xxxx_description', $_POST['xxxx_description']);
+        }
+    }
+
+
     // Make sure our flag is in there, otherwise it's an autosave and we should bail.
+
     if($post_id && isset($_POST['xxxx_manual_save_flag'])) { 
 
         // Logic to handle specific post types
@@ -184,10 +204,20 @@ add_action('save_post','xxxx_update_post',1,2);
 
 
 function filter_post_json( $data, $post, $context ) {
-  $source = get_post_meta( $post->ID, '_xxxx_attached_image', true ); // get the value from the meta field
-	if( $source ) { // include it in the response if not empty
-		$data->data['custom_meta'] = array( 'imageID' => $source );
-	}
+    $source = get_post_meta( $post->ID, '_xxxx_attached_image', true ); // get the value from the meta field
+    $description = get_post_meta($post->ID, 'xxxx_description', true);
+
+    $data_array = [];
+
+    if ($source){
+        $data_array["imageID"] = $source;
+    }
+
+    if ($description) {
+        $data_array["description"] = $description;
+    }
+
+    $data->data['custom_meta'] = $data_array;
 	
 	return $data;
 }
@@ -205,7 +235,27 @@ function my_custom_css() {
         max-width:700px;
         height:auto;
     }
+    .xxxx_description{
+        width: 100%;
+        min-height: 200px;
+    }
   </style>';
 }
 
 add_action('admin_head', 'my_custom_css');
+
+add_action( 'rest_api_init', 'roekeloos_register_api_hooks' );
+
+function roekeloos_register_api_hooks() {
+    register_rest_field(
+        'post',
+        'highlighted',
+        array(
+            'get_callback'    => 'roekeloos_return_highlighted_content',
+        )
+    );
+}
+
+function roekeloos_return_highlighted_content($object, $field_name, $request) {
+    return $object['content']['rendered'];
+}
