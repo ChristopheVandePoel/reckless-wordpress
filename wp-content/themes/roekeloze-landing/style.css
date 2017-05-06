@@ -1,0 +1,12 @@
+/*
+Theme Name: Roekeloze Landing
+Author: Christophe Van de Poel
+Author URI: https://roekeloos.be
+Version: 0.1.0
+Text Domain: roekloze-landing
+*/
+
+.post-uploaded_image {
+    width: 700px;
+    height: auto;
+}
